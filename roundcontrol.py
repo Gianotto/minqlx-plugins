@@ -19,7 +19,6 @@
 import minqlx
 
 VERSION = "v1.00"
-SUPPORTED_GAMETYPES = ("ad", "ca", "ctf", "dom", "ft", "tdm")
 
 class roundcontrol(minqlx.Plugin):
     #####
@@ -39,32 +38,30 @@ class roundcontrol(minqlx.Plugin):
         self.add_hook("player_disconnect", self.handle_player_disconnect)
         self.add_hook("vote_ended", self.handle_vote_ended, priority=minqlx.PRI_LOWEST)
 
-        self.add_command(("unlockteams"), self.cmd_unlockteams, 1)
-        self.add_command(("lockstatus"), self.cmd_lockstatus, 1)
-        self.add_command(("lockteams"), self.cmd_lockteams, 3, usage="<0|1>")
+        self.add_command(("unlockteams"), self.cmd_unlockteams)
+        self.add_command(("lockstatus"), self.cmd_lockstatus)
+        self.add_command(("lockteams"), self.cmd_lockteams, 2, usage="<0|1>")
 
         self.set_cvar_once("qlx_minRoundsToLock", "5")
         self.set_cvar_once("qlx_roundControlEnable", "1")
 
     def handle_round_start(self, *args, **kwargs):
        if self.get_cvar("qlx_roundControlEnable", bool):
-            total_rounds = max((int)(self.game.red_score), (int)(self.game.blue_score))
-
             teams = self.teams()
-            if len(teams["red"] + teams["blue"]) % 2 != 0:
+            if len(teams["red"] + teams["blue"]) % 2 != 0: # Check if teams has same amount of players
                 self.msg("Teams were ^3NOT^7 balanced. Not possible to lock teams.")
                 return minqlx.RET_STOP_ALL
-
+       
+            total_rounds = max((int)(self.game.red_score), (int)(self.game.blue_score)) # gets the maximum rounds won by a team
             if total_rounds >= (int)(self.get_cvar("qlx_minRoundsToLock")) and self.teamslocked is False:
                 self.msg("Round Control: Game reach maximum round count. ^6Locking teams.")
                 self.msg("Round Control: You can use ^3!unlockteams ^7to unlock.")
                 
                 self.def_lock()
-                self.teamslocked = True
        
     def handle_player_disconnect(self, player, reason):
         teams = self.teams()
-        if len(teams["red"] + teams["blue"]) % 2 != 0:
+        if len(teams["red"] + teams["blue"]) % 2 != 0: # check if disconnected player was in a team
             self.def_unlock(0)
     
     def handle_game_end(self, data):
@@ -74,7 +71,7 @@ class roundcontrol(minqlx.Plugin):
     def handle_vote_ended(self, votes, vote, args, passed):
         if vote.lower() == "teamsize" and passed:
             if self.get_cvar("qlx_roundControlEnable", bool):
-                self.msg("args {}".format(args))
+                #self.msg("args {}".format(args))
                 self.def_unlock(0)
     
     def cmd_unlockteams(self, player, msg, channel):
@@ -96,7 +93,6 @@ class roundcontrol(minqlx.Plugin):
 
     @minqlx.thread
     def def_unlock(self, size):
-        teams = self.teams()
         self.unlock()
         self.teamslocked = False
         if size > 0:
