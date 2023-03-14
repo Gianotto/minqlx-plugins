@@ -17,13 +17,13 @@
 #####
 #   CVARS
 #   qlx_chatrelayenabled <1|0> Enable/Disable chat relay to telegram
-#   qlx_cmdrelayenabled <1|0> Enable/Disable commands relay to telegram
 #   qlx_plrelayenabled <1|0> Enable/Disable players connect/disconnect relay to telegram
 #   qlx_voterelayenabled <1|0> Enable/Disable votes relay to telegram
 #   
 #####
 import minqlx
 import telebot
+import threading
 
 VERSION = "v0.1"
 TELEBOT_DB_KEY = "minqlx:telegrambot:{}"
@@ -38,11 +38,11 @@ class telegrambot(minqlx.Plugin):
         self.add_hook("game_end", self.handle_game_end)
         self.add_hook("player_connect", self.handle_player_connect, priority=minqlx.PRI_LOWEST)
         self.add_hook("player_disconnect", self.handle_player_disconnect)
-        self.add_hook("client_command", self.handle_client_command, priority=minqlx.PRI_LOWEST)
         self.add_hook("vote_called", self.handle_vote_called)
+        self.add_hook("vote_ended", self.handle_vote_ended)
+        self.add_hook("map", self.handle_map)
 
         self.set_cvar_once("qlx_chatrelayenabled", "1")
-        self.set_cvar_once("qlx_cmdrelayenabled", "1")
         self.set_cvar_once("qlx_plrelayenabled", "1")
         self.set_cvar_once("qlx_voterelayenabled", "1")
 
@@ -103,26 +103,35 @@ class telegrambot(minqlx.Plugin):
         player.tell("Telegram Bot: CHAT ID: {}".format(self.db.get(TELEBOT_DB_KEY.format("chatid"))))
 
     ################### HANDLES ####################
+    ###################  VOTES  ####################
     def handle_vote_called(self, caller, vote, args):
         if self.complete: self.scan_vote_called(caller, vote, args)
     
     @minqlx.thread
     def scan_vote_called(self, caller, vote, args):
         if self.get_cvar("qlx_voterelayenabled") == "1":
-            self.game_bot.send_message(self.chatidk, "{}: callvote {} {}".format(self.clean_text((str)(caller)), vote, args))
+            c = self.clean_text((str)(caller))
+            self.game_bot.send_message(self.chatidk, "{}: callvote {} {}".format(c, vote, args))
+    
+    def handle_vote_ended(self, votes, vote, args, passed):
+        if self.get_cvar("qlx_voterelayenabled") == "1":
+            if passed:
+                self.game_bot.send_message(self.chatidk, "Vote passed ({} - {}).".format(*votes))
+            else:
+                self.game_bot.send_message(self.chatidk, "{}: Vote failed.".format(vote))
 
+    ###################   CHAT   ####################
     def handle_chat(self, player, msg, channel):
         if self.get_cvar("qlx_chatrelayenabled") == "1":
             if self.complete: self.scan_chat(player, msg, channel)
     
     @minqlx.thread
     def scan_chat(self, player, msg, channel):
-        def sub_func(match):
-            return match.group(0)
         if channel == "chat":
             p = self.clean_text((str)(player))
             self.game_bot.send_message(self.chatidk, "{}: {}".format(p, msg))
 
+    ################### PLAYER ####################
     def handle_player_connect(self, player):
         if self.get_cvar("qlx_plrelayenabled") == "1":
             if self.complete: self.scan_player_connect(player)
@@ -140,48 +149,45 @@ class telegrambot(minqlx.Plugin):
     def scan_player_disconnect(self, player):
         p = self.clean_text((str)(player))
         self.game_bot.send_message(self.chatidk, "{} disconnected.".format(p))
-     
-    def handle_client_command(self, player, cmd):
-        if self.get_cvar("qlx_cmdrelayenabled") == "1":
-            if self.complete: self.scan_client_command(player, cmd)
+
+    ###################  MAP  ####################
+    def handle_map(self, map, factory):
+        if self.complete: self.scan_map(map, factory)
 
     @minqlx.thread
-    def scan_client_command(self, player, cmd):
-        minqlx.console_print("Comando : {}".format(cmd))
-        if cmd == "score" or cmd.find("say") or cmd.find("say_team"):
-            return minqlx.RET_STOP_ALL
-        else:
-            p = self.clean_text((str)(player))
-            self.game_bot.send_message(self.chatidk, "{} used command {}.".format(p, cmd))
+    def scan_map(self, map, factory):
+        self.game_bot.send_message(self.chatidk, "Changing to map {}.".format(map))
     
+    ################### GAME END ####################
     def handle_game_end(self, data):
         if self.complete: self.scan_game_end()
 
     @minqlx.thread
     def scan_game_end(self, data):
-        players = self.players()
-        if not len(players):
-            return minqlx.RET_STOP_ALL
-        
-        res = "{:^} | {:^}\n".format("Team", "Name")
-        teamr = res
-        teamb = res
-        spec = res
-        for p in players:
-            if p.team == 'red':
-                teamr += "{:^} | {}\n".format(p.team, self.clean_text((str)(p)))
-            if p.team == 'blue':
-                teamb += "{:^} | {}\n".format(p.team, self.clean_text((str)(p)))
-            if p.team == 'spectator':
-               spec += "{:^} | {}\n".format(p.team, self.clean_text((str)(p)))
-        
-        self.game_bot.send_message(self.chatidk, teamr)
-        self.game_bot.send_message(self.chatidk, teamb)
-        self.game_bot.send_message(self.chatidk, spec)
+        if self.complete:
+            players = self.players()
+            if not len(players):
+                return minqlx.RET_STOP_ALL
+            
+            res = "{:^}\n"
+            teamr = res.format("-- Red --")
+            teamb = res.format("-- Blue --")
+            spec = res.format("-- Spec --")
+            for p in players:
+                if p.team == 'red':
+                    teamr += "{}\n".format(self.clean_text((str)(p)))
+                if p.team == 'blue':
+                    teamb += "{}\n".format(self.clean_text((str)(p)))
+                if p.team == 'spectator':
+                    spec += "{}\n".format(self.clean_text((str)(p)))
+            
+            self.game_bot.send_message(self.chatidk, teamr)
+            self.game_bot.send_message(self.chatidk, teamb)
+            self.game_bot.send_message(self.chatidk, spec)
 
     @minqlx.thread
     def testpl(self, player, msg, channel):
-        if self.complete: 
+        if self.complete:
             players = self.players()
             if not len(players):
                 player.tell("There are no players connected at the moment.")
@@ -202,3 +208,4 @@ class telegrambot(minqlx.Plugin):
             self.game_bot.send_message(self.chatidk, teamr)
             self.game_bot.send_message(self.chatidk, teamb)
             self.game_bot.send_message(self.chatidk, spec)
+
