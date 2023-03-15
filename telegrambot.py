@@ -22,15 +22,16 @@
 #   
 #####
 import minqlx
-import telebot
-import threading
+from telebot import TeleBot
 
 VERSION = "v0.1"
 TELEBOT_DB_KEY = "minqlx:telegrambot:{}"
+API_KEY = ""
+telebot = TeleBot(API_KEY)
 
 class telegrambot(minqlx.Plugin):
-
-    game_bot = telebot.TeleBot("")
+    gamebot = telebot
+    complete = False # setup complete control flag
 
     def __init__(self):
         super().__init__()
@@ -50,13 +51,30 @@ class telegrambot(minqlx.Plugin):
         self.add_command("telebotchatid", self.chatid, 2, usage="<CHAT_ID>")
         self.add_command("telebotapikey", self.apikey, 2, usage="<API_KEY>")
         self.add_command("showtelebotkeys", self.telebotkey, 2)
-
-        self.complete = False # setup complete control flag
+        
         self.apikeyk = ""
         self.chatidk = ""
         minqlx.console_print("Loading Telegram Bot keys from DB...")
         self.loadkeys()
 
+    
+    @gamebot.message_handler(commands=['chatid'])
+    def fchatid(message):
+        telebot.send_message(message.chat.id, "Chat ID: {}".format(message.chat.id))
+        return
+    
+    @gamebot.message_handler(commands=['time'])
+    def mapchange(message):
+        minqlx.console_command("!time")
+
+    @gamebot.message_handler(commands=['campgrounds'])
+    def mapchange(message):
+        minqlx.console_command("map campgrounds")
+
+    @gamebot.message_handler(commands=['unlockteams'])
+    def mapchange(message):
+        minqlx.console_command("!unlockteams")
+    
     ###################### DB ######################
     @minqlx.thread
     def loadkeys(self):
@@ -68,9 +86,7 @@ class telegrambot(minqlx.Plugin):
             return minqlx.RET_STOP_ALL
         else:
             minqlx.console_print("Telegram Bot: API KEY found: {}".format(apikey))
-            self.apikeyk = apikey
-            self.game_bot = telebot.TeleBot(apikey)
-            self.game_bot = telebot.TeleBot(apikey)
+            #self.gamebot.setapikey(apikey)
 
         # Get CHAT ID in DB
         chatidkey = self.db.get(TELEBOT_DB_KEY.format("chatid"))
@@ -81,7 +97,9 @@ class telegrambot(minqlx.Plugin):
         else:
             minqlx.console_print("Telegram Bot: CHAT ID found: {}".format(chatidkey))
             self.chatidk = chatidkey
+            #self.gamebot.setchatid(chatidkey)
             self.complete = True
+            self.gamebot.polling()
 
     ###################### DB SET ######################
     def chatid(self, player, msg, channel):
@@ -111,14 +129,14 @@ class telegrambot(minqlx.Plugin):
     def scan_vote_called(self, caller, vote, args):
         if self.get_cvar("qlx_voterelayenabled") == "1":
             c = self.clean_text((str)(caller))
-            self.game_bot.send_message(self.chatidk, "{}: callvote {} {}".format(c, vote, args))
+            self.gamebot.send_message(self.chatid, "{}: callvote {} {}".format(c, vote, args))
     
     def handle_vote_ended(self, votes, vote, args, passed):
         if self.get_cvar("qlx_voterelayenabled") == "1":
             if passed:
-                self.game_bot.send_message(self.chatidk, "Vote passed ({} - {}).".format(*votes))
+                self.gamebot.send_message(self.chatid, "Vote passed ({} - {}).".format(*votes))
             else:
-                self.game_bot.send_message(self.chatidk, "{}: Vote failed.".format(vote))
+                self.gamebot.send_message(self.chatid, "{}: Vote failed.".format(vote))
 
     ###################   CHAT   ####################
     def handle_chat(self, player, msg, channel):
@@ -129,7 +147,7 @@ class telegrambot(minqlx.Plugin):
     def scan_chat(self, player, msg, channel):
         if channel == "chat":
             p = self.clean_text((str)(player))
-            self.game_bot.send_message(self.chatidk, "{}: {}".format(p, msg))
+            self.gamebot.send_message(self.chatid, "{}: {}".format(p, msg))
 
     ################### PLAYER ####################
     def handle_player_connect(self, player):
@@ -139,7 +157,7 @@ class telegrambot(minqlx.Plugin):
     @minqlx.thread
     def scan_player_connect(self, player):
         p = self.clean_text((str)(player))
-        self.game_bot.send_message(self.chatidk, "{} connected.".format(p))
+        self.gamebot.send_message(self.chatid, "{} connected.".format(p))
 
     def handle_player_disconnect(self, player, reason):
         if self.get_cvar("qlx_plrelayenabled") == "1":
@@ -148,7 +166,7 @@ class telegrambot(minqlx.Plugin):
     @minqlx.thread
     def scan_player_disconnect(self, player):
         p = self.clean_text((str)(player))
-        self.game_bot.send_message(self.chatidk, "{} disconnected.".format(p))
+        self.gamebot.send_message(self.chatid, "{} disconnected.".format(p))
 
     ###################  MAP  ####################
     def handle_map(self, map, factory):
@@ -156,7 +174,7 @@ class telegrambot(minqlx.Plugin):
 
     @minqlx.thread
     def scan_map(self, map, factory):
-        self.game_bot.send_message(self.chatidk, "Changing to map {}.".format(map))
+        self.gamebot.send_message(self.chatid, "Changing to map {}.".format(map))
     
     ################### GAME END ####################
     def handle_game_end(self, data):
@@ -181,9 +199,9 @@ class telegrambot(minqlx.Plugin):
                 if p.team == 'spectator':
                     spec += "{}\n".format(self.clean_text((str)(p)))
             
-            self.game_bot.send_message(self.chatidk, teamr)
-            self.game_bot.send_message(self.chatidk, teamb)
-            self.game_bot.send_message(self.chatidk, spec)
+            self.gamebot.send_message(self.chatid, teamr)
+            self.gamebot.send_message(self.chatid, teamb)
+            self.gamebot.send_message(self.chatid, spec)
 
     @minqlx.thread
     def testpl(self, player, msg, channel):
@@ -205,7 +223,8 @@ class telegrambot(minqlx.Plugin):
                 if p.team == 'spectator':
                     spec += "{}\n".format(self.clean_text((str)(p)))
             
-            self.game_bot.send_message(self.chatidk, teamr)
-            self.game_bot.send_message(self.chatidk, teamb)
-            self.game_bot.send_message(self.chatidk, spec)
+            self.gamebot.send_message(self.chatid, teamr)
+            self.gamebot.send_message(self.chatid, teamb)
+            self.gamebot.send_message(self.chatid, spec)
 
+telebot.polling()

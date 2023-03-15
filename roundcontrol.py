@@ -36,6 +36,7 @@ class roundcontrol(minqlx.Plugin):
         self.add_hook("round_start", self.handle_round_start)
         self.add_hook("game_end", self.handle_game_end)
         self.add_hook("player_disconnect", self.handle_player_disconnect)
+        self.add_hook("team_switch", self.handle_team_switch)
         self.add_hook("vote_ended", self.handle_vote_ended, priority=minqlx.PRI_LOWEST)
 
         self.add_command(("unlockteams"), self.cmd_unlockteams)
@@ -64,6 +65,10 @@ class roundcontrol(minqlx.Plugin):
         if len(teams["red"] + teams["blue"]) % 2 != 0: # check if disconnected player was in a team
             self.def_unlock(0)
     
+    def handle_team_switch(self, player, old_team, new_team):
+        if new_team != "spectator": # check if leaver was in the red or blue team
+            self.def_unlock(0)
+    
     def handle_game_end(self, data):
         if self.get_cvar("qlx_roundControlEnable", bool):
             self.def_unlock((int)(self.game.teamsize) + 1)
@@ -71,7 +76,6 @@ class roundcontrol(minqlx.Plugin):
     def handle_vote_ended(self, votes, vote, args, passed):
         if vote.lower() == "teamsize" and passed:
             if self.get_cvar("qlx_roundControlEnable", bool):
-                #self.msg("args {}".format(args))
                 self.def_unlock(0)
     
     def cmd_unlockteams(self, player, msg, channel):
