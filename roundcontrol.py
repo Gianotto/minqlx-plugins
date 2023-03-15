@@ -66,7 +66,7 @@ class roundcontrol(minqlx.Plugin):
             self.def_unlock(0)
     
     def handle_team_switch(self, player, old_team, new_team):
-        if new_team != "spectator": # check if leaver was in the red or blue team
+        if old_team != "spectator": # check if leaver was in the red or blue team
             self.def_unlock(0)
     
     def handle_game_end(self, data):
