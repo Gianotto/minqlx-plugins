@@ -26,7 +26,7 @@ from telebot import TeleBot
 
 VERSION = "v0.1"
 TELEBOT_DB_KEY = "minqlx:telegrambot:{}"
-API_KEY = ""
+API_KEY = "6074681084:AAFc3iyT73O9q9XYXkmSXc3WUFBoLiuLEKw"
 telebot = TeleBot(API_KEY)
 
 class tgbot(minqlx.Plugin):

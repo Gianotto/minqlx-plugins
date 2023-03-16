@@ -28,6 +28,8 @@ class roundcontrol(minqlx.Plugin):
     # Server setup:
     # qlx_minRoundsToLock 5 (default:5)     Minimum rounds won to block new players from joinning
     # qlx_roundControlEnable 1 (default: 1)   Enable / disable round control
+    # qlx_autoteamsize 0 (default: 0)   Enable / disable auto teamsize adjustments
+    #
     #####
     teamslocked = False
 
@@ -45,6 +47,7 @@ class roundcontrol(minqlx.Plugin):
 
         self.set_cvar_once("qlx_minRoundsToLock", "5")
         self.set_cvar_once("qlx_roundControlEnable", "1")
+        self.set_cvar_once("qlx_autoteamsize", "0")
 
     def handle_round_start(self, *args, **kwargs):
        if self.get_cvar("qlx_roundControlEnable", bool):
@@ -100,8 +103,9 @@ class roundcontrol(minqlx.Plugin):
         self.unlock()
         self.teamslocked = False
         if size > 0:
-            self.game.teamsize = size
-            self.msg("Round Control: Teamsize set to ^3{}.".format(size))
+            if self.get_cvar("qlx_autoteamsize", bool):
+                self.game.teamsize = size
+                self.msg("Round Control: Teamsize set to ^3{}.".format(size))
         self.msg("Round Control: Teams were ^3UNLOCKED^7. Spectators are allowed to join.")
     
     @minqlx.thread
@@ -109,8 +113,9 @@ class roundcontrol(minqlx.Plugin):
         teams = self.teams()
         self.lock()
         self.teamslocked = True
-        self.game.teamsize = len(teams["red"]) # teams are equal anyways ;)
-        self.msg("Round Control: Teamsize set to ^3{}.".format(len(teams["red"])))
+        if self.get_cvar("qlx_autoteamsize", bool):
+            self.game.teamsize = len(teams["red"]) # teams are equal anyways ;)
+            self.msg("Round Control: Teamsize set to ^3{}.".format(len(teams["red"])))
         self.msg("Round Control: Teams were ^1LOCKED^7.")
     
     def cmd_lockstatus(self, player, msg, channel):
