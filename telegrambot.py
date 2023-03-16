@@ -16,11 +16,11 @@
 #   
 #####
 import minqlx
-from telebot import TeleBot
+from telebot import TeleBot, util
 
 VERSION = "v0.1"
 TELEBOT_DB_KEY = "minqlx:telegrambot:{}"
-API_KEY = "6074681084:AAFc3iyT73O9q9XYXkmSXc3WUFBoLiuLEKw"
+API_KEY = "6074681084:AAFgdc3hPThmameomSsujwyJOt2Pck0Z_JQ"
 telebot = TeleBot(API_KEY)
 
 class telegrambot(minqlx.Plugin):
@@ -49,22 +49,27 @@ class telegrambot(minqlx.Plugin):
         self.loadkeys()
 
     @gamebot.message_handler(commands=['chatid'])
-    def fchatid(message):
+    def cmd_chatid(message):
         telebot.send_message(message.chat.id, "Chat ID: {}".format(message.chat.id))
-        return
     
     @gamebot.message_handler(commands=['time'])
-    def mapchange(message):
-        minqlx.console_print("Cmd Time executed")
+    def cmd_time(message):
         minqlx.console_command("!time")
-
-    @gamebot.message_handler(commands=['campgrounds'])
-    def mapchange(message):
-        minqlx.console_command("map campgrounds")
-
+    
     @gamebot.message_handler(commands=['unlockteams'])
-    def mapchange(message):
+    def cmd_teams(message):
         minqlx.console_command("!unlockteams")
+
+    @gamebot.message_handler(commands=['map'])
+    def cmd_map(message):
+        map = util.extract_arguments(message.text)
+        minqlx.Plugin.change_map("{}".format(map), "ca")
+
+    @gamebot.message_handler(commands=['say'])
+    def cmd_say(message):
+        text = util.extract_arguments(message.text)
+        telebot.send_message(message.chat.id, "Telebot: {}".format(text)) # feedback
+        minqlx.CHAT_CHANNEL.reply("Telebot: {}".format(text))
     
     ###################### DB ######################
     @minqlx.thread
@@ -77,6 +82,7 @@ class telegrambot(minqlx.Plugin):
             return minqlx.RET_STOP_ALL
         else:
             minqlx.console_print("Telegram Bot: API KEY found: {}".format(apikey))
+            self.apikeyk = apikey
             #self.gamebot.setapikey(apikey)
 
         # Get CHAT ID in DB
