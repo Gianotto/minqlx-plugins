@@ -41,6 +41,7 @@ class telegrambot(minqlx.Plugin):
         self.add_hook("unload", self.handle_unload)
 
         self.add_command("testpl", self.testpl, 2)
+        self.add_command("playersid", self.playerids, 2)
         self.add_command("telebotchatid", self.chatid, 2, usage="<CHAT_ID>")
         self.add_command("telebotapikey", self.apikey, 2, usage="<API_KEY>")
         self.add_command("showtelebotkeys", self.telebotkey, 2)
@@ -57,7 +58,7 @@ class telegrambot(minqlx.Plugin):
         minqlx.console_command("!time")
     
     @gamebot.message_handler(commands=['unlockteams'])
-    def cmd_teams(message):
+    def cmd_teams(message): 
         minqlx.console_command("!unlockteams")
 
     @gamebot.message_handler(commands=['map'])
@@ -70,6 +71,11 @@ class telegrambot(minqlx.Plugin):
         text = util.extract_arguments(message.text)
         telebot.send_message(message.chat.id, "Telebot: {}".format(text)) # feedback
         minqlx.CHAT_CHANNEL.reply("Telebot: {}".format(text))
+
+    @gamebot.message_handler(commands=['playersid'])
+    def cmd_playersid(message):
+        map = util.extract_arguments(message.text)
+        minqlx.Plugin.change_map("{}".format(map), "ca")
     
     ###################### DB ######################
     @minqlx.thread
@@ -224,3 +230,17 @@ class telegrambot(minqlx.Plugin):
             self.gamebot.send_message(self.chatidk, teamr)
             self.gamebot.send_message(self.chatidk, teamb)
             self.gamebot.send_message(self.chatidk, spec)
+
+    @minqlx.thread
+    def playerids(self, player, msg, channel):
+        if self.complete:
+            players = self.players()
+            if not len(players):
+                player.tell("There are no players connected at the moment.")
+                return minqlx.RET_STOP_ALL
+            
+            header = "Player | Steam ID\n"
+            for p in players:
+                header += "{} | {}\n".format(self.clean_text((str)(p)), p.steam_id)
+
+            self.gamebot.send_message(self.chatidk, header)
