@@ -27,26 +27,13 @@ VAR_WARNING = "qlx_afk_warning_seconds"
 VAR_DETECTION = "qlx_afk_detection_seconds"
 VAR_PUT_SPEC = "qlx_afk_put_to_spec"
 VAR_PAIN = "qlx_afk_pain"
+VAR_ROUNDS_NODMG = "qlx_afk_rounds_nodmg"
 
 # Interval for the thread to update positions. Default = 0.33
 interval = 0.33
 
-# This code makes sure the required superclass is loaded automatically
-try:
-    from .iouonegirl import iouonegirlPlugin
-except:
-    try:
-        abs_file_path = os.path.join(os.path.dirname(__file__), "iouonegirl.py")
-        res = requests.get("https://raw.githubusercontent.com/dsverdlo/minqlx-plugins/master/iouonegirl.py")
-        if res.status_code != requests.codes.ok: raise
-        with open(abs_file_path,"a+") as f: f.write(res.text)
-        from .iouonegirl import iouonegirlPlugin
-    except Exception as e :
-        minqlx.CHAT_CHANNEL.reply("^1iouonegirl abstract plugin download failed^7: {}".format(e))
-        raise
-
 # Start plugin
-class afk(iouonegirlPlugin):
+class afk(minqlx.Plugin):
 
     def __init__(self):
         super().__init__(self.__class__.__name__, VERSION)
@@ -56,14 +43,16 @@ class afk(iouonegirlPlugin):
         self.set_cvar_once(VAR_DETECTION, "20")
         self.set_cvar_once(VAR_PUT_SPEC, "1")
         self.set_cvar_once(VAR_PAIN, "100")
+        self.set_cvar_once(VAR_ROUNDS_NODMG, "2")
 
         # Get required cvars
         self.warning = int(self.get_cvar(VAR_WARNING))
         self.detection = int(self.get_cvar(VAR_DETECTION))
         self.put_to_spec = int(self.get_cvar(VAR_PUT_SPEC))
         self.pain = int(self.get_cvar(VAR_PAIN))
+        self.rounds_nodmg = int(self.get_cvar(VAR_ROUNDS_NODMG))
 
-        # steamid : [position, seconds]
+        # steamid : [0: position, 1: seconds, 2: rounds no damage]
         self.positions = {}
 
         # keep looking for AFK players
@@ -79,9 +68,6 @@ class afk(iouonegirlPlugin):
         self.add_hook("death", self.handle_death)
 
 
-
-
-
     def handle_unload(self, plugin):
         if plugin == self.__class__.__name__:
             self.running = False
@@ -90,7 +76,7 @@ class afk(iouonegirlPlugin):
     def handle_round_start(self, round_number):
         teams = self.teams()
         for p in teams['red'] + teams['blue']:
-            self.positions[p.steam_id] = [self.help_get_pos(p), 0]
+            self.positions[p.steam_id] = [self.help_get_pos(p), 0] # to validate
 
         self.punished = []
 
@@ -98,10 +84,18 @@ class afk(iouonegirlPlugin):
         self.running = True
         self.help_create_thread()
 
+    # Round end, checks for damage dealt
     def handle_round_end(self, round_number):
+        teams = self.teams()
+        for p in teams['red'] + teams['blue']:
+            d = p.stats.damage_dealt
+            r = self.positions[p.steam_id][2]
+            if d <= 0: r += 1
+            self.positions[p.steam_id] = [self.help_get_pos(p), 0, 0 if d > 0 else r]
+
         self.running = False
         self.punished = []
-
+    
     def handle_player_switch(self, player, old, new):
         if new == 'spectator':
             if player.steam_id in self.positions:
@@ -110,7 +104,7 @@ class afk(iouonegirlPlugin):
                 self.punished.remove(player)
 
         if new in ['red', 'blue']:
-            self.positions[player.steam_id] = [self.help_get_pos(player), 0]
+            self.positions[player.steam_id] = [self.help_get_pos(player), 0, 0]
 
     @minqlx.thread
     def help_create_thread(self):
@@ -124,22 +118,25 @@ class afk(iouonegirlPlugin):
                 if pid not in self.positions:
                     self.positions[pid] = [self.help_get_pos(p), 0]
 
-                prev_pos, secs = self.positions[pid]
+                prev_pos, secs, damage_dealt, rounds = self.positions[pid]
                 curr_pos = self.help_get_pos(p)
 
                 # If position stayed the same, add the time difference and check for thresholds
+                # also check if player has done any damage during the round
                 if prev_pos == curr_pos:
                     self.positions[pid] = [curr_pos, secs+interval]
                     if secs+interval >= self.warning and secs < self.warning:
                         self.help_warn(p)
                     elif secs+interval >= self.detection and secs < self.detection:
                         self.help_detected_print(p)
+                elif damage_dealt == 0 and rounds >= self.rounds_nodmg: # detect rounds without damage
+                    self.help_detected_print(p)
                 else:
                     self.positions[pid] = [curr_pos, 0]
                     if p in self.punished:
                         # if the player started moving, remove him from punished players
                         self.punished.remove(p)
-
+                        
             time.sleep(interval)
 
     def handle_death(self, victim, killer, data):
@@ -181,8 +178,6 @@ class afk(iouonegirlPlugin):
             message = "^1Inactive for {} seconds! \n\n^7Move or keep getting damage!".format(s)
             minqlx.send_server_command(player.id, "cp \"\n\n\n{}\"".format(message))
             time.sleep(wait)
-
-
         return
 
 
