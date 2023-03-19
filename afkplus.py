@@ -19,9 +19,6 @@ import minqlx
 import threading
 import time
 import os
-import requests
-
-VERSION = "v0.15"
 
 VAR_WARNING = "qlx_afk_warning_seconds"
 VAR_DETECTION = "qlx_afk_detection_seconds"
@@ -33,10 +30,10 @@ VAR_ROUNDS_NODMG = "qlx_afk_rounds_nodmg"
 interval = 0.33
 
 # Start plugin
-class afk(minqlx.Plugin):
+class afkplus(minqlx.Plugin):
 
     def __init__(self):
-        super().__init__(self.__class__.__name__, VERSION)
+        super().__init__()
 
         # Set required cvars once. DONT EDIT THEM HERE BUT IN SERVER.CFG
         self.set_cvar_once(VAR_WARNING, "10")
@@ -118,7 +115,7 @@ class afk(minqlx.Plugin):
                 if pid not in self.positions:
                     self.positions[pid] = [self.help_get_pos(p), 0]
 
-                prev_pos, secs, damage_dealt, rounds = self.positions[pid]
+                prev_pos, secs, rounds = self.positions[pid]
                 curr_pos = self.help_get_pos(p)
 
                 # If position stayed the same, add the time difference and check for thresholds
@@ -129,7 +126,7 @@ class afk(minqlx.Plugin):
                         self.help_warn(p)
                     elif secs+interval >= self.detection and secs < self.detection:
                         self.help_detected_print(p)
-                elif damage_dealt == 0 and rounds >= self.rounds_nodmg: # detect rounds without damage
+                elif rounds >= self.rounds_nodmg: # detect rounds without damage
                     self.help_detected_print(p)
                 else:
                     self.positions[pid] = [curr_pos, 0]
