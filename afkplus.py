@@ -116,9 +116,9 @@ class afk(minqlx.Plugin):
                 if not p.is_alive: continue
 
                 if pid not in self.positions:
-                    self.positions[pid] = [self.help_get_pos(p), 0]
+                    self.positions[pid] = [self.help_get_pos(p), 0, 0]
 
-                prev_pos, secs, damage_dealt, rounds = self.positions[pid]
+                prev_pos, secs, rounds = self.positions[pid]
                 curr_pos = self.help_get_pos(p)
 
                 # If position stayed the same, add the time difference and check for thresholds
@@ -129,7 +129,7 @@ class afk(minqlx.Plugin):
                         self.help_warn(p)
                     elif secs+interval >= self.detection and secs < self.detection:
                         self.help_detected_print(p)
-                elif damage_dealt == 0 and rounds >= self.rounds_nodmg: # detect rounds without damage
+                elif rounds >= self.rounds_nodmg: # detect rounds without damage
                     self.help_detected_print(p)
                 else:
                     self.positions[pid] = [curr_pos, 0]
