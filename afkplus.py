@@ -19,9 +19,6 @@ import minqlx
 import threading
 import time
 import os
-import requests
-
-VERSION = "v0.15"
 
 VAR_WARNING = "qlx_afk_warning_seconds"
 VAR_DETECTION = "qlx_afk_detection_seconds"
@@ -33,10 +30,10 @@ VAR_ROUNDS_NODMG = "qlx_afk_rounds_nodmg"
 interval = 0.33
 
 # Start plugin
-class afk(minqlx.Plugin):
+class afkplus(minqlx.Plugin):
 
     def __init__(self):
-        super().__init__(self.__class__.__name__, VERSION)
+        super().__init__()
 
         # Set required cvars once. DONT EDIT THEM HERE BUT IN SERVER.CFG
         self.set_cvar_once(VAR_WARNING, "10")
