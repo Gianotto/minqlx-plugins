@@ -13,6 +13,7 @@
 # - qlx_afk_warning_seconds "10"
 # - qlx_afk_detection_seconds "20"
 # - qlx_afk_put_to_spec "1"
+# - qlx_afk_rounds_nodmg "2"
 
 
 import minqlx

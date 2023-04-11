@@ -140,6 +140,10 @@ class telegrambot(minqlx.Plugin):
         self.gamebot.send_message(self.chatidk, "{}: callvote {} {}".format(c, vote, args))
     
     def handle_vote_ended(self, votes, vote, args, passed):
+        if self.complete: self.scan_vote_ended(votes, vote, passed)
+
+    @minqlx.thread
+    def scan_vote_ended(self, votes, vote, passed):
         if passed:
             self.gamebot.send_message(self.chatidk, "Vote passed ({} - {}).".format(*votes))
         else:
