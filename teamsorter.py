@@ -77,7 +77,7 @@ def balance(player_list, num_players_team):
             #print(grouping)
             
             for i, time in enumerate(grouping):
-                print("Time {}: {}. Elo: {}".format(i+1, time, team_avg(time, player_list)))
+                print("Time {}: (Elo: {}). {}".format(i+1, team_avg(time, player_list), time))
         if last_best <= VARIANCE_ACCEPTED:
             print("Found best result.")
             break
@@ -87,7 +87,7 @@ def balance(player_list, num_players_team):
 for sid in sid_list:
     elo = fetch_elo(sid)
     print("Steam ID: {} Elo: {}".format(sid, elo))
-    print(SteamID(sid))
+    #print(SteamID(sid))
     sid_list[sid] = elo
 
 print([sid_list])
