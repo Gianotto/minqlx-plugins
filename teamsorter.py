@@ -9,24 +9,6 @@ STEAM_API_UID = STEAM_API_LINK + '&steamids={}'
 NAME = 0
 ELO = 1
 
-# dicionário de jogadores com seus respectivos Elos
-players = {"sn00per": 734,
-                "Luanzeyra": 1417,
-                "Bobi Mauley": 1488,
-                "razor": 1403,
-                "rakz": 1315,
-                "Fbz": 1286,
-                "kasparov": 1219,
-                "Muka": 1182,
-                "Chaka": 1121,
-                "Out_Brasil": 958,
-                "DoomRG": 927,
-                "PCPmineiro": 909,
-                "Shark": 897,
-                "13me": 784,
-                "3Ti-HyperX": 503,
-                "n00t!": 451}
-
 sid_players = { 
                 '76561197985502667' : ['x', 1],
                 '76561198026118540' : ['x', 1],
