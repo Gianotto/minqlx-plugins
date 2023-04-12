@@ -6,7 +6,7 @@ MAX_PLAYERS = 4
 VARIANCE_ACCEPTED = 20
 
 # dicionário de jogadores com seus respectivos Elos
-jogadores = {"sn00per": 734,
+players = {"sn00per": 734,
                 "Luanzeyra": 1417,
                 "Bobi Mauley": 1488,
                 "razor": 1403,
@@ -32,14 +32,14 @@ def unique_group(iterable, k, n, groups=0):
             yield [combination, *rest]
 
 def variance(groups):
-    total_skills = [sum(jogadores[player] for player in group) for group in groups]
+    total_skills = [sum(players[player] for player in group) for group in groups]
     return max(total_skills) - min(total_skills)
 
 def team_avg(team):
-    return sum([jogadores[player] for player in team]) / len(team)
+    return sum([players[player] for player in team]) / len(team)
 
 i = 0
-for grouping in unique_group(jogadores, len(jogadores)/MAX_PLAYERS, 4):
+for grouping in unique_group(players, len(players)/MAX_PLAYERS, 4):
     i += 1
     if i % 100000 == 0:
         sys.stdout.write('.')
