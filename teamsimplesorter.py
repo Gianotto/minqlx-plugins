@@ -1,25 +1,46 @@
 import random
 
-MAX_PLAYERS = 4
-MIN_DIFF = 100
+MAX_PLAYERS = 5
 
 # dicionário de jogadores com seus respectivos pesos
-jogadores = {"sn00per": 734,
-                "Luanzeyra": 1417,
-                "Bobi Mauley": 1488,
-                "razor": 1403,
-                "rakz": 1315,
-                "Fbz": 1286,
-                "kasparov": 1219,
-                "Muka": 1182,
-                "Chaka": 1121,
-                "Out_Brasil": 958,
-                "DoomRG": 927,
-                "PCPmineiro": 909,
-                "Shark": 897,
-                "13me": 784,
-                "3Ti-HyperX": 503,
-                "n00t!": 451}
+jogadores = players = {
+    "PaquiTao": 722,
+    "sn00per": 716,
+    "caYer4": 1004,
+    "Chaka": 1090,
+    "13m3": 823,
+    "Fbz": 1281,
+    "kasparov": 1256,
+    "GordOfWar": 999,
+    "3Ti-HyperX": 487,
+    "trololo": 977,
+    "ov3rk1ll^^": 1072,
+    "Shark": 888,
+    "L1m4o": 921,
+    "^2MΘDΞSTI∆": 857,
+    "MacetA": 847,
+    "lipe": 1209,
+    "^3chicken": 886,
+    "mix": 1084,
+    "helm": 863,
+    "Railer": 917,
+    "gyodai": 932,
+    "Ugakill": 997,
+    "Out_Brasil": 906,
+    "nhd": 1345,
+    "Decao": 889,
+    "terz": 922,
+    "d3k0666": 869,
+    "NetM wanted": 1161,
+    "PCPmineiro": 871,
+    "BOT Coelho": 1073,
+    "Sr. Miyagi": 1221,
+    "bjkkk": 1264,
+    "DoomRG": 911,
+    ".": 1276,
+    "SpectralWizard": 952
+}
+
 
 def team_avg(team):
     return sum([jogadores[jogador] for jogador in team]) / len(team)

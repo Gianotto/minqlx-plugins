@@ -1,10 +1,10 @@
-import sys, requests, time
+import sys, requests, time, random
 from itertools import combinations
 
 MAX_PLAYERS = 5
-NUM_TEAMS = 6
+NUM_TEAMS = 7
 VARIANCE_ACCEPTED = 20
-RUNNING_TIME = 5*60
+RUNNING_TIME = 1*60
 QLSTATS_URL = 'https://qlstats.net/elo/{}'
 STEAM_KEY = '' # get one at https://steamcommunity.com/dev
 STEAM_API_LINK = 'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key={}'.format(STEAM_KEY)
@@ -13,12 +13,22 @@ NAME_KEY = 0
 ELO_KEY = 1
 
 sid_players = { 
-                '76561197985502667' : ['x', 1],
+                '76561197993190504' : ['x', 1],
+                '76561198003765572' : ['x', 1],
+                '76561198154996520' : ['x', 1],
+                '76561198315999232' : ['x', 1],
+                '76561198383687171' : ['x', 1],
+                '76561198075370176' : ['x', 1],
                 '76561198026118540' : ['x', 1],
-                '76561199041428969' : ['x', 1],
-                '76561198340444680' : ['x', 1],
-                '76561197971071169' : ['x', 1],
-                '76561197961495830' : ['x', 1],
+                '76561197985502667' : ['x', 1],
+                '76561198054894320' : ['x', 1],
+                '76561198350007415' : ['x', 1],
+                '76561198020698841' : ['x', 1],
+                '76561198120362672' : ['x', 1],
+                '76561198017151203' : ['x', 1],
+                '76561198221203272' : ['x', 1],
+                '76561198198545569' : ['x', 1],
+                '76561199409120459' : ['x', 1],
                 '76561198052156695' : ['x', 1],
                 '76561197979265380' : ['x', 1],
                 '76561198257497456' : ['x', 1],
@@ -27,29 +37,20 @@ sid_players = {
                 '76561198001099451' : ['x', 1],
                 '76561198242559062' : ['x', 1],
                 '76561198048262475' : ['x', 1],
-                '76561198209854275' : ['x', 1],
-                '76561198154953404' : ['x', 1],
-                '76561198054894320' : ['x', 1],
-                '76561198350007415' : ['x', 1],
-                '76561197993190504' : ['x', 1],
-                '76561198003765572' : ['x', 1],
-                '76561198154996520' : ['x', 1],
-                '76561198315999232' : ['x', 1],
-                '76561198383687171' : ['x', 1],
-                '76561198075370176' : ['x', 1],
-                '76561198405178407' : ['x', 1],
-                '76561198075370176' : ['x', 1],
-                '76561198020698841' : ['x', 1],
-                '76561198120362672' : ['x', 1],
-                '76561198017151203' : ['x', 1],
-                '76561198221203272' : ['x', 1],
-                '76561198198545569' : ['x', 1],
-                '76561199409120459' : ['x', 1],
                 '76561198044013818' : ['x', 1],
                 '76561198118398346' : ['x', 1],
-                '76561197987529787' : ['x', 1]}
+                '76561197987529787' : ['x', 1],
+                '76561199041428969' : ['x', 1],
+                '76561198340444680' : ['x', 1],
+                '76561197971071169' : ['x', 1],
+                '76561197961495830' : ['x', 1],
+                '76561198209854275' : ['x', 1],
+                '76561198154953404' : ['x', 1],
+                '76561198405178407' : ['x', 1],
+                '76561198075370176' : ['x', 1],
+                '76561198108655845' : ['x', 1]}
 
-
+# find combinations with the list, teams and players
 def unique_group(iterable, k, n, groups=0):
     if groups == k:
         yield []
@@ -58,6 +59,7 @@ def unique_group(iterable, k, n, groups=0):
         for rest in unique_group(pool.difference(combination), k, n, groups + 1):
             yield [combination, *rest]
 
+# calculate elo variance between team members
 def variance(groups, plist):
     total_skills = [sum(plist[player][ELO_KEY] for player in group) for group in groups]
     return max(total_skills) - min(total_skills)
@@ -66,20 +68,20 @@ def team_avg(team, plist):
     return sum([plist[player][ELO_KEY] for player in team]) / len(team)
 
 def balance(player_list, num_players_team, num_teams):
-    if len(sid_players) % NUM_TEAMS != 0:
+    if len(player_list) % NUM_TEAMS != 0:
         print("Found {} players in list.\nNumber of players {} per team must match exact distribution to the amount of desired of {} teams.".format(len(player_list), MAX_PLAYERS, NUM_TEAMS))
         #return
     
     # search for players elos based on steamid
     # build player list
-    print("Found total of {} players.".format(len(sid_players)))
+    print("Found total of {} players.".format(len(player_list)))
     print("Gathering ELO from QLStats.net...")
-    for sid in sid_players:
-        sid_players[sid].pop(ELO_KEY)
-        sid_players[sid].insert(ELO_KEY, fetch_elo(sid))
-        sid_players[sid].pop(NAME_KEY)
-        sid_players[sid].insert(NAME_KEY, getsteam_profile(sid))
-        print("Player: {} ({}) : {}".format(sid_players[sid][NAME_KEY], sid, sid_players[sid][ELO_KEY]))
+    for sid in player_list:
+        player_list[sid].pop(ELO_KEY)
+        player_list[sid].insert(ELO_KEY, fetch_elo(sid))
+        player_list[sid].pop(NAME_KEY)
+        player_list[sid].insert(NAME_KEY, getsteam_profile(sid))
+        print("Player: {} ({}) : {}".format(player_list[sid][NAME_KEY], sid, player_list[sid][ELO_KEY]))
 
     print("Shuffling teams based on Elo stats...")
     initial_time = time.time()
@@ -94,7 +96,7 @@ def balance(player_list, num_players_team, num_teams):
 
         if time.time() - initial_time > RUNNING_TIME:
             sys.stdout.flush()
-            print(f"Reach maximum runnnning time. Ended with variance of {last_best}")
+            sys.stdout.write(f"Reach maximum runnnning time. Ended with variance of {last_best}")
             break
 
         if variance(grouping, player_list) < last_best:
@@ -117,8 +119,6 @@ def balance(player_list, num_players_team, num_teams):
         if last_best <= VARIANCE_ACCEPTED:
             print("Found best result.")
             break
-        
-        
 
 # return elo, games stats
 def fetch_elo(sid):
@@ -129,11 +129,11 @@ def fetch_elo(sid):
     js = res.json()
 
     for p in js['players']:
-        _sid = int(p['steamid'])
         if 'ca' in p: return p['ca']['elo'] #, p['ca']['games']
         # If the gametype was not found
         else: return 0
 
+# get Steam profile user nickname
 def getsteam_profile(uid):
     url = STEAM_API_UID.format(uid)
     res = requests.get(url)
@@ -142,4 +142,14 @@ def getsteam_profile(uid):
     js = res.json()
     return(js['response']['players'][0]['personaname'])
 
-balance(sid_players, MAX_PLAYERS, NUM_TEAMS)
+# randomize dict
+def randomKeys(dict_list):
+    print("Randomizing player list...")
+    keys = list(dict_list.keys())
+    random.shuffle(keys)
+    random_dict_list = {}
+    for key in keys:
+        random_dict_list[key] = dict_list[key]
+    return random_dict_list
+
+balance(randomKeys(sid_players), MAX_PLAYERS, NUM_TEAMS)
