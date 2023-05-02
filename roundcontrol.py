@@ -26,9 +26,9 @@ class roundcontrol(minqlx.Plugin):
     # Allow players to say !unlockteams to let spectators to join.
     # 
     # Server setup:
-    # qlx_minRoundsToLock 5 (default:5)     Minimum rounds won to block new players from joinning
-    # qlx_roundControlEnable 1 (default: 1)   Enable / disable round control
-    # qlx_autoteamsize 0 (default: 0)   Enable / disable auto teamsize adjustments
+    # qlx_minRoundsToLock 5         (default:5)      Minimum rounds won to block new players from joinning
+    # qlx_roundControlEnable 1      (default: 1)     Enable / disable round control
+    # qlx_autoteamsize 0            (default: 0)     Enable / disable auto teamsize adjustments
     #
     #####
     teamslocked = False
@@ -62,6 +62,7 @@ class roundcontrol(minqlx.Plugin):
                 self.msg("Round Control: You can use ^3!unlockteams ^7to unlock.")
                 
                 self.def_lock()
+            if self.teamslocked: self.msg("Round Control: Teams ^1LOCKED^7. Use ^3unlockteams ^7to unlock.")
        
     def handle_player_disconnect(self, player, reason):
         teams = self.teams()

@@ -50,7 +50,7 @@ class afkplus(minqlx.Plugin):
         self.pain = int(self.get_cvar(VAR_PAIN))
         self.rounds_nodmg = int(self.get_cvar(VAR_ROUNDS_NODMG))
 
-        # steamid : [0: position, 1: seconds, 2: rounds no damage]
+        # steamid : [0: position, 1: seconds, 2: rounds with no damage]
         self.positions = {}
 
         # keep looking for AFK players
@@ -70,12 +70,12 @@ class afkplus(minqlx.Plugin):
         if plugin == self.__class__.__name__:
             self.running = False
             self.punished = []
+            self.positions = []
 
     def handle_round_start(self, round_number):
         teams = self.teams()
         for p in teams['red'] + teams['blue']:
-            self.positions[p.steam_id] = [self.help_get_pos(p), 0] # to validate
-
+            self.positions[p.steam_id] = [self.help_get_pos(p), 0, 0] # to validate
         self.punished = []
 
         # start checking thread
@@ -86,10 +86,16 @@ class afkplus(minqlx.Plugin):
     def handle_round_end(self, round_number):
         teams = self.teams()
         for p in teams['red'] + teams['blue']:
-            d = p.stats.damage_dealt
-            r = self.positions[p.steam_id][2]
-            if d <= 0: r += 1
-            self.positions[p.steam_id] = [self.help_get_pos(p), 0, 0 if d > 0 else r]
+            pid = p.steam_id
+
+            if not pid: continue
+
+            if pid in self.positions:
+                d = p.stats.damage_dealt
+                minqlx.console_print(str(self.positions[p.steam_id]))
+                r = self.positions[p.steam_id][2]
+                if d <= 0: r += 1
+                self.positions[p.steam_id] = [self.help_get_pos(p), 0, 0 if d > 0 else r]
 
         self.running = False
         self.punished = []
@@ -116,6 +122,7 @@ class afkplus(minqlx.Plugin):
                 if pid not in self.positions:
                     self.positions[pid] = [self.help_get_pos(p), 0, 0]
 
+                #minqlx.console_print((str)(self.positions[pid]))
                 prev_pos, secs, rounds = self.positions[pid]
                 curr_pos = self.help_get_pos(p)
 
