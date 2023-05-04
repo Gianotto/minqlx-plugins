@@ -1,5 +1,5 @@
 # midair.py, a plugin that keeps score of top X midair rocket kills per map in terms of distance.
-# On evey midair kill that counts (minheight and mindistance variables), a text message will inform everyone
+# On evey midair kill that counts (MINHEIGHT and MINDISTANCE variables), a text message will inform everyone
 # about the distance involved, and who killed who, together with a "Holy shit" sound announcement.
 # If the map record has been broken, then the "New high score" announcement will be used instead.
 # Also shows a kill counter of Killer:Victim (taken from pummel.py by mattiZed).
@@ -15,6 +15,9 @@ import time
 
 MIDAIR_KEY = "minqlx:midair:{}"
 PLAYER_KEY = "minqlx:players:{}"
+
+MINHEIGHT = 128 #min height difference to register midairs
+MINDISTANCE = 300 #min length distance to register midairs
 
 class midair(minqlx.Plugin):
     def __init__(self):
@@ -56,9 +59,8 @@ class midair(minqlx.Plugin):
                 victim_name = data['VICTIM']['NAME']
                 players = self.players()
                 map_name = self.game.map.lower()
-                minheight = 100 #min height difference to register midairs
-                mindistance = 300 #min length distance to register midairs
-                if height > minheight and distance > mindistance:
+                
+                if height > MINHEIGHT and distance > MINDISTANCE:
                     self.db.zadd(MIDAIR_KEY.format(map_name), distance, "{},{},{}".format(k_id, v_id, int(time.time())))
                     self.db.zincrby(MIDAIR_KEY.format(map_name) + ":count", k_id, 1)
                     self.db.zadd(PLAYER_KEY.format(k_id) + ":midair:" + str(map_name), distance, "{},{}".format(v_id, int(time.time())))
