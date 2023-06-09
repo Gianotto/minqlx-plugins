@@ -16,6 +16,8 @@ import minqlx
 import os
 import time
 import datetime
+import itertools
+from operator import itemgetter
 
 
 PLAYER_KEY = "minqlx:players:{}"
@@ -37,7 +39,7 @@ class players_db(minqlx.Plugin):
         self.add_command(("bans", "banned", "listbans"), self.list_bans, 3)
         self.add_command(("silenced", "silences", "listsilenced"), self.list_silenced, 3)
         self.add_command("leavers", self.list_leavers, 3)
-        self.add_command("warned", self.list_warned, 3)
+        self.add_command("listwarned", self.list_warned, 3)
         self.add_command("sid", self.sid_info, 3)
 
     def get_db_field(self, field):
@@ -391,7 +393,7 @@ class players_db(minqlx.Plugin):
         else:
             playerlist = self.db.keys(PLAYER_KEY.format("*"))
             message = []
-            for player in playerlist:
+            for sid, player in itertools.groupby(playerlist, key=itemgetter(0)):
                 steam_id = player.split(":")[2]
                 try:
                     completed = self.db[PLAYER_KEY.format(steam_id) + ":games_completed"]
@@ -411,6 +413,7 @@ class players_db(minqlx.Plugin):
                 else:
                     ratio = completed / total
                 if ratio <= warn_threshold and (ratio > ban_threshold or total < min_games_completed):
+
                     message.append("{} ^7({}): ^6Games Played: ^7{} ^5Left: ^7{} ^4Percent: ^7{}"
                                    .format(self.player_name(steam_id),
                                            steam_id, total, left, ratio))
@@ -418,7 +421,8 @@ class players_db(minqlx.Plugin):
             if len(message) > 0:
                 asker.tell("^5Leaver Warned^7:")
                 for leaver in message:
-                    asker.tell(leaver)
+                    #asker.tell(leaver)
+                    minqlx.console_print(leaver)
             else:
                 asker.tell("^5No Leaver Warned found.")
         return
