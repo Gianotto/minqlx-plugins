@@ -108,7 +108,7 @@ class afkplus(minqlx.Plugin):
                 self.punished.remove(player)
 
         if new in ['red', 'blue']:
-            self.positions[player.steam_id] = [self.help_get_pos(player), 0, 0]
+            self.positions[player.steam_id] = [self.help_get_pos(player), 0] #removed , 0
 
     @minqlx.thread
     def help_create_thread(self):
@@ -120,7 +120,7 @@ class afkplus(minqlx.Plugin):
                 if not p.is_alive: continue
 
                 if pid not in self.positions:
-                    self.positions[pid] = [self.help_get_pos(p), 0, 0]
+                    self.positions[pid] = [self.help_get_pos(p), 0] #removed , 0
 
                 #minqlx.console_print((str)(self.positions[pid]))
                 #prev_pos, secs, rounds = self.positions[pid]
