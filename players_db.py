@@ -392,8 +392,8 @@ class players_db(minqlx.Plugin):
             asker.tell("^5Leaver bans are not enabled on this server.")
         else:
             playerlist = self.db.keys(PLAYER_KEY.format("*"))
-            message = []
-            for sid, player in itertools.groupby(playerlist, key=itemgetter(0)):
+            message = {'' : ''}
+            for player in playerlist:
                 steam_id = player.split(":")[2]
                 try:
                     completed = self.db[PLAYER_KEY.format(steam_id) + ":games_completed"]
@@ -413,16 +413,14 @@ class players_db(minqlx.Plugin):
                 else:
                     ratio = completed / total
                 if ratio <= warn_threshold and (ratio > ban_threshold or total < min_games_completed):
-
-                    message.append("{} ^7({}): ^6Games Played: ^7{} ^5Left: ^7{} ^4Percent: ^7{}"
+                    message[steam_id] = ("{} ^7({}): ^6Games Played: ^7{} ^5Left: ^7{} ^4Percent: ^7{}"
                                    .format(self.player_name(steam_id),
                                            steam_id, total, left, ratio))
 
             if len(message) > 0:
                 asker.tell("^5Leaver Warned^7:")
                 for leaver in message:
-                    #asker.tell(leaver)
-                    minqlx.console_print(leaver)
+                    asker.tell(message[leaver])
             else:
                 asker.tell("^5No Leaver Warned found.")
         return

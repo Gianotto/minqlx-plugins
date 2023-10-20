@@ -29,6 +29,10 @@ _re_ = {}
 def add_sound(key, regex, path):
     _re_[key] = [re.compile(regex, flags=re.IGNORECASE), path]
 
+add_sound("agressivo", r"^agressivoW?$", "sound/funnysounds24/agressivo.ogg")
+add_sound("solamento", r"^solamentoW?$", "sound/funnysounds24/solamento.ogg")
+add_sound("grosso", r"^grossoW?$", "sound/funnysounds24/grosso.ogg")
+add_sound("sacanagem", r"^sacanagemW?$", "sound/funnysounds24/sacanagem.ogg")
 add_sound("1x1", r"^1x1W?$", "sound/funnysounds23/1x1.ogg")
 add_sound("amor", r"^amorW?$", "sound/funnysounds23/amorvenceu.ogg")
 add_sound("cara", r"^caraW?$", "sound/funnysounds23/cara.ogg")
@@ -41,7 +45,7 @@ add_sound("fidobill", r"^fidobillW?$", "sound/funnysounds20/fidobill.ogg")
 add_sound("inferno", r"^infernoW?$", "sound/funnysounds20/inferno.ogg")
 add_sound("loucura", r"^loucuraW?$", "sound/funnysounds20/loucura.ogg")
 add_sound("rapaiz", r"^rapaizW?$", "sound/funnysounds20/rapaiz.ogg")
-add_sound("sacanagem", r"^sacanagemW?$", "sound/funnysounds20/sacanagem.ogg")
+#add_sound("sacanagem", r"^sacanagemW?$", "sound/funnysounds20/sacanagem.ogg")
 add_sound("verdade", r"^verdadeW?$", "sound/funnysounds20/verdade.ogg")
 add_sound("beleza", r"^belezaW?$", "sound/funnysounds20/beleza.ogg")
 add_sound("sobra", r"^sobraW?$", "sound/funnysounds13/sobra.ogg")
@@ -56,8 +60,8 @@ add_sound("beijo", r"^beijoW?$", "sound/funnysounds13/beijo.ogg")
 add_sound("mukito", r"^mukitoW?$", "sound/funnysounds12/mukito.ogg")
 add_sound("pcp", r"^pcpW?$", "sound/funnysounds12/pcp.ogg")
 add_sound("overkill", r"^overkillW?$", "sound/funnysounds12/overkill.ogg")
-add_sound("lula", r"^lulaW?$", "sound/funnysounds11/lula.ogg")
-add_sound("bozo1", r"^bozo1W?$", "sound/funnysounds11/bozo1.ogg")
+#add_sound("lula", r"^lulaW?$", "sound/funnysounds11/lula.ogg")
+#add_sound("bozo1", r"^bozo1W?$", "sound/funnysounds11/bozo1.ogg")
 #add_sound("bozo2", r"^bozo2W?$", "sound/funnysounds11/bozo2.ogg")
 add_sound("amigo", r"^amigoW?$", "sound/funnysounds10/amigo.ogg")
 add_sound("barril", r"^barrilW?$", "sound/funnysounds10/barril.ogg")
@@ -452,4 +456,3 @@ class funnysounds(minqlx.Plugin):
             channel.reply("For me? Thank you, {}!".format(player))
         else:
             channel.reply("I'm out of cookies right now, {}. Sorry!".format(player))
-

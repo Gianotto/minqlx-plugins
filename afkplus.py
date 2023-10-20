@@ -75,7 +75,7 @@ class afkplus(minqlx.Plugin):
     def handle_round_start(self, round_number):
         teams = self.teams()
         for p in teams['red'] + teams['blue']:
-            self.positions[p.steam_id] = [self.help_get_pos(p), 0, 0] # to validate
+            self.positions[p.steam_id] = [self.help_get_pos(p), 0] # to validate
         self.punished = []
 
         # start checking thread
@@ -95,7 +95,7 @@ class afkplus(minqlx.Plugin):
                 minqlx.console_print(str(self.positions[p.steam_id]))
                 r = self.positions[p.steam_id][2]
                 if d <= 0: r += 1
-                self.positions[p.steam_id] = [self.help_get_pos(p), 0, 0 if d > 0 else r]
+                self.positions[p.steam_id] = [self.help_get_pos(p), 0] #, 0 if d > 0 else r]
 
         self.running = False
         self.punished = []
@@ -123,7 +123,8 @@ class afkplus(minqlx.Plugin):
                     self.positions[pid] = [self.help_get_pos(p), 0, 0]
 
                 #minqlx.console_print((str)(self.positions[pid]))
-                prev_pos, secs, rounds = self.positions[pid]
+                #prev_pos, secs, rounds = self.positions[pid]
+                prev_pos, secs = self.positions[pid]
                 curr_pos = self.help_get_pos(p)
 
                 # If position stayed the same, add the time difference and check for thresholds
@@ -134,8 +135,8 @@ class afkplus(minqlx.Plugin):
                         self.help_warn(p)
                     elif secs+interval >= self.detection and secs < self.detection:
                         self.help_detected_print(p)
-                elif rounds >= self.rounds_nodmg: # detect rounds without damage
-                    self.help_detected_print(p)
+                #elif rounds >= self.rounds_nodmg: # detect rounds without damage
+                #    self.help_detected_print(p)
                 else:
                     self.positions[pid] = [curr_pos, 0]
                     if p in self.punished:

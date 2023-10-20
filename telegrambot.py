@@ -56,10 +56,6 @@ class telegrambot(minqlx.Plugin):
     @gamebot.message_handler(commands=['time'])
     def cmd_time(message):
         minqlx.console_command("!time")
-    
-    @gamebot.message_handler(commands=['unlockteams'])
-    def cmd_teams(message): 
-        minqlx.console_command("!unlockteams")
 
     @gamebot.message_handler(commands=['map'])
     def cmd_map(message):
@@ -72,10 +68,6 @@ class telegrambot(minqlx.Plugin):
         telebot.send_message(message.chat.id, "Telebot: {}".format(text)) # feedback
         minqlx.CHAT_CHANNEL.reply("Telebot: {}".format(text))
 
-    @gamebot.message_handler(commands=['playersid'])
-    def cmd_playersid(message):
-        map = util.extract_arguments(message.text)
-        minqlx.Plugin.change_map("{}".format(map), "ca")
     
     ###################### DB ######################
     @minqlx.thread
