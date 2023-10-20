@@ -25,7 +25,7 @@ VAR_WARNING = "qlx_afk_warning_seconds"
 VAR_DETECTION = "qlx_afk_detection_seconds"
 VAR_PUT_SPEC = "qlx_afk_put_to_spec"
 VAR_PAIN = "qlx_afk_pain"
-VAR_ROUNDS_NODMG = "qlx_afk_rounds_nodmg"
+#VAR_ROUNDS_NODMG = "qlx_afk_rounds_nodmg"
 
 # Interval for the thread to update positions. Default = 0.33
 interval = 0.33
@@ -41,7 +41,7 @@ class afkplus(minqlx.Plugin):
         self.set_cvar_once(VAR_DETECTION, "20")
         self.set_cvar_once(VAR_PUT_SPEC, "1")
         self.set_cvar_once(VAR_PAIN, "100")
-        self.set_cvar_once(VAR_ROUNDS_NODMG, "2")
+        #self.set_cvar_once(VAR_ROUNDS_NODMG, "2")
 
         # Get required cvars
         self.warning = int(self.get_cvar(VAR_WARNING))
