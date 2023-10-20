@@ -48,7 +48,7 @@ class afkplus(minqlx.Plugin):
         self.detection = int(self.get_cvar(VAR_DETECTION))
         self.put_to_spec = int(self.get_cvar(VAR_PUT_SPEC))
         self.pain = int(self.get_cvar(VAR_PAIN))
-        self.rounds_nodmg = int(self.get_cvar(VAR_ROUNDS_NODMG))
+        #self.rounds_nodmg = int(self.get_cvar(VAR_ROUNDS_NODMG))
 
         # steamid : [0: position, 1: seconds, 2: rounds with no damage]
         self.positions = {}
@@ -75,7 +75,7 @@ class afkplus(minqlx.Plugin):
     def handle_round_start(self, round_number):
         teams = self.teams()
         for p in teams['red'] + teams['blue']:
-            self.positions[p.steam_id] = [self.help_get_pos(p), 0] # to validate
+            self.positions[p.steam_id] = [self.help_get_pos(p), 0] # removed , 0
         self.punished = []
 
         # start checking thread
